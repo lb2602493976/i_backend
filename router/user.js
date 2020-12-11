@@ -3,6 +3,8 @@ const express = require('express')
 const pool = require('../pool.js')
 router = express.Router()
 
+
+let sessionTest = null;
 /**
  * 1.1	用户注册
  *接口URL
@@ -56,10 +58,11 @@ router.post('/register', (req, res, next) => {
 		return
 	}
 	let captcha = req.body.captcha
-	console.log("服务器端captcha:", captcha)
+	// console.log("服务器端captcha:", captcha)
 	console.log("服务器端captcha:", req.body.captcha)
 	console.log("客户端captcha:", req.session.registerCaptcha)
-	console.log("客户端captcha:",captcha.toLowerCase())
+	console.log('session', req.session)
+	// console.log("客户端captcha:",captcha.toLowerCase())
 
 	if (!captcha) {
 		let output = {
@@ -68,12 +71,13 @@ router.post('/register', (req, res, next) => {
 		}
 		res.send(output)
 		return
-	} else if (captcha.toLowerCase() !== req.session.registerCaptcha) {
+	} else if (captcha.toLowerCase()!== req.session.registerCaptcha) {
+		console.log('1',captcha.toLowerCase(),req.session.registerCaptcha)
+		console.log('2',captcha.toLowerCase(),req.session)
 		let output = {
 			code: 405,
 			msg: 'captcha error'
 		}
-		
 		res.send(output)
 		return
 	}
@@ -157,6 +161,7 @@ router.post('/login', (req, res, next) => {
 			code: 401,
 			msg: 'not find uname'
 		}
+		res.send(output)
 	}
 	let upwd = req.body.upwd
 	if (!upwd) {
@@ -164,14 +169,16 @@ router.post('/login', (req, res, next) => {
 			code: 402,
 			msg: 'not find upwd'
 		}
+		res.send(output)
 	}
 	// 2.执行数据库操作
-	let sql = 'SELECT uid,uname,nickname FROM user WHERE uname=? AND upwd=?'
+	let sql = 'SELECT uid,uname FROM user WHERE uname=? AND upwd=?'
 	pool.query(sql, [uname, upwd], (err, result) => {
 		if (err) {
 			next(err)
 			return
 		}
+		console.log(result.length)
 		if (result.length > 0) {
 			// 3.想客户端输出响应结果
 			let output = {
@@ -189,6 +196,7 @@ router.post('/login', (req, res, next) => {
 				code: 404,
 				msg: 'login failure'
 			}
+			console.log(output)
 			res.send(output)
 		}
 	})
@@ -356,13 +364,16 @@ router.get('/register/captcha', (req, res, next) => {
 	// 1.在服务器端会话中存储此时生成的验证码文本
 	// req.session.registerCaptcha=captcha.text
 	req.session.registerCaptcha = captcha.text.toLowerCase() //保存小写形式的验证内容
-	
+	sessionTest = req.session
 	console.log("刚刚生成的服务器端验证码:", req.session.registerCaptcha)
-	console.log("刚刚生成的服务器端验证码:", captcha.text.toLowerCase())
+	console.log("session:", req.session)
+	console.log("刚刚生成的服务器端验证码:", captcha.text)
+	req.session.save() //手工保存对session数据的修改
 	// 2.向客户端输出此验证码图片的内容
 	res.type('svg') //修改Content-type:image/svg+xml
 	res.send(captcha.data)
-	console.log(captcha.data)
+	
+	// console.log(captcha.data)
 })
 
 

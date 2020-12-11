@@ -15,7 +15,8 @@ app.use(bodyParser.json()) //处理请求主体中的JSON数据，保存到req.b
 // 2.CORS跨域处理中间件
 let cors = require('cors')
 app.use(cors({ //设置运行客户端跨域请求相关的响应消息头部 —— TODO：此处未完结
-	origin: ['http://127.0.0.1:8080', 'http://localhost:8080'],
+	origin: ['http://127.0.0.1:8080','http://localhost:8080','http://192.168.0.107:8080'],
+	// origin:['*'],
 	// 修改Access-Control-Allow-Credentials:true——运行客户端请求携带身份认证
 	credentials: true,
 }))
